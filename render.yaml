@@ -1,0 +1,27 @@
+{
+  "name": "react-esport",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "npm run install-all",
+    "install-all": "cd backend && npm install && cd ../frontend && npm install",
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hisago/esport-fullJs.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Hisago/esport-fullJs/issues"
+  },
+  "homepage": "https://github.com/Hisago/esport-fullJs#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  }
+}
