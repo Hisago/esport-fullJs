@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Game {
+  id          Int          @id @default(autoincrement())
+  name        String
+  slug        String       @unique
+  teams       Team[]
+  leagues     League[]
+  tournaments Tournament[]
+  players     Player[]
+}
+
+model League {
+  id       Int     @id @default(autoincrement())
+  api_id   Int     @unique
+  name     String
+  slug     String
+  region   String
+  logo_url String?
+  game_id  Int
+  game     Game    @relation(fields: [game_id], references: [id])
+  teams    Team[]
+  matches  Match[]
+  tournaments Tournament[]
+}
+
+model Team {
+  id        Int     @id @default(autoincrement())
+  name      String
+  logo_url  String?
+  league_id Int?
+  league    League? @relation(fields: [league_id], references: [id])
+  game_id   Int
+  game      Game    @relation(fields: [game_id], references: [id])
+  data      Json?
+  matchesAsTeam1 Match[] @relation("Team1")
+  matchesAsTeam2 Match[] @relation("Team2")
+  players   Player[]
+}
+
+model Player {
+  id          Int     @id @default(autoincrement())
+  api_id      Int     @unique
+  name        String
+  role        String
+  nationality String
+  picture_url String?
+  team_id     Int
+  team        Team    @relation(fields: [team_id], references: [id])
+  game_id     Int
+  game        Game    @relation(fields: [game_id], references: [id])
+}
+
+model Tournament {
+  id          Int     @id @default(autoincrement())
+  api_id      Int     @unique
+  name        String
+  slug        String
+  begin_at    DateTime?
+  end_at      DateTime?
+  location    String?
+  logo_url    String?
+  league_id   Int?
+  league      League? @relation(fields: [league_id], references: [id])
+  serie_id    Int?
+  serie_name  String?
+  league_name String?
+  game_id     Int
+  game        Game    @relation(fields: [game_id], references: [id])
+  matches     Match[]
+}
+
+model Match {
+  id              Int      @id @default(autoincrement())
+  api_id          Int      @unique
+  league_id       Int
+  tournament_id   Int?
+  tournament      Tournament? @relation(fields: [tournament_id], references: [id])
+  league          League   @relation(fields: [league_id], references: [id])
+  team1_id        Int
+  team2_id        Int
+  team1           Team     @relation("Team1", fields: [team1_id], references: [id])
+  team2           Team     @relation("Team2", fields: [team2_id], references: [id])
+  team1_api_id    Int?
+  team2_api_id    Int?
+  date            DateTime?
+  status          String?
+  match_type      String?
+  number_of_games Int?
+  winner_api_id   Int?
+  score_team1     Int?
+  score_team2     Int?
+  slug            String?
+  stage           String?
+  bracket        String?
+}

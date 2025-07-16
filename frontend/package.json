@@ -1,0 +1,42 @@
+{
+  "name": "esport-frontend",
+  "version": "0.0.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "dev:server": "nodemon --exec tsx src/index.ts",
+    "start:server": "node dist/index.js",
+    "build:server": "tsc"
+  },
+  "dependencies": {
+    "@tanstack/react-query": "^5.81.5",
+    "axios": "^1.6.0",
+    "clsx": "^2.1.1",
+    "express": "^4.18.2",
+    "framer-motion": "^12.23.0",
+    "lucide-react": "^0.525.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^7.6.3",
+    "sqlite3": "^5.1.6"
+  },
+  "devDependencies": {
+    "@types/babel__core": "^7.20.5",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.19",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.0.0",
+    "autoprefixer": "^10.4.21",
+    "nodemon": "^3.1.0",
+    "postcss": "^8.5.6",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.6.13",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.20.3",
+    "typescript": "^5.4.2",
+    "vite": "^5.0.0"
+  }
+}

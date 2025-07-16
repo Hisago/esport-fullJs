@@ -1,0 +1,197 @@
+{
+  "opponents": [
+    {
+      "type": "Team",
+      "opponent": {
+        "id": 1566,
+        "name": "Bilibili Gaming",
+        "location": "CN",
+        "slug": "bilibili-gaming",
+        "modified_at": "2025-07-12T12:36:49Z",
+        "acronym": "BLG",
+        "image_url": "https://cdn.pandascore.co/images/team/image/1566/qw_yi_qu_j.png"
+      }
+    },
+    {
+      "type": "Team",
+      "opponent": {
+        "id": 129971,
+        "name": "Anyone's Legend",
+        "location": "CN",
+        "slug": "anyone-s-legend",
+        "modified_at": "2025-07-12T12:36:47Z",
+        "acronym": "AL",
+        "image_url": "https://cdn.pandascore.co/images/team/image/129971/anyone_27s_legendlogo_profile.png"
+      }
+    }
+  ],
+  "streams_list": [
+    {
+      "main": false,
+      "language": "en",
+      "embed_url": "https://www.youtube.com/embed/cwgaWUUw_I4",
+      "official": false,
+      "raw_url": "https://www.youtube.com/watch?v=cwgaWUUw_I4"
+    },
+    {
+      "main": true,
+      "language": "en",
+      "embed_url": null,
+      "official": true,
+      "raw_url": "http://twitch.tv/riotgames"
+    }
+  ],
+  "games": [
+    {
+      "complete": true,
+      "id": 269033,
+      "position": 1,
+      "status": "finished",
+      "length": 2224,
+      "finished": true,
+      "match_id": 1199347,
+      "begin_at": "2025-07-11T00:01:52Z",
+      "detailed_stats": true,
+      "end_at": "2025-07-11T00:46:37Z",
+      "forfeit": false,
+      "winner_type": "Team",
+      "winner": {
+        "id": 129971,
+        "type": "Team"
+      }
+    },
+    {
+      "complete": true,
+      "id": 269034,
+      "position": 2,
+      "status": "finished",
+      "length": 1744,
+      "finished": true,
+      "match_id": 1199347,
+      "begin_at": "2025-07-11T00:59:21Z",
+      "detailed_stats": true,
+      "end_at": "2025-07-11T01:35:54Z",
+      "forfeit": false,
+      "winner_type": "Team",
+      "winner": {
+        "id": 129971,
+        "type": "Team"
+      }
+    },
+    {
+      "complete": true,
+      "id": 269035,
+      "position": 3,
+      "status": "finished",
+      "length": 2634,
+      "finished": true,
+      "match_id": 1199347,
+      "begin_at": "2025-07-11T01:49:11Z",
+      "detailed_stats": true,
+      "end_at": "2025-07-11T02:41:26Z",
+      "forfeit": false,
+      "winner_type": "Team",
+      "winner": {
+        "id": 129971,
+        "type": "Team"
+      }
+    }
+  ],
+  "winner_type": "Team",
+  "league": {
+    "id": 300,
+    "name": "Mid-Season Invitational",
+    "url": null,
+    "slug": "league-of-legends-mid-invitational",
+    "modified_at": "2019-06-13T11:53:14Z",
+    "image_url": "https://cdn.pandascore.co/images/league/image/300/900px-msi_2021_lightmode-png"
+  },
+  "results": [
+    {
+      "team_id": 1566,
+      "score": 0
+    },
+    {
+      "team_id": 129971,
+      "score": 3
+    }
+  ],
+  "winner": {
+    "id": 129971,
+    "name": "Anyone's Legend",
+    "location": "CN",
+    "slug": "anyone-s-legend",
+    "modified_at": "2025-07-12T12:36:47Z",
+    "acronym": "AL",
+    "image_url": "https://cdn.pandascore.co/images/team/image/129971/anyone_27s_legendlogo_profile.png"
+  },
+  "winner_id": 129971,
+  "game_advantage": null,
+  "rescheduled": false,
+  "end_at": "2025-07-11T02:41:25Z",
+  "videogame_title": null,
+  "tournament_id": 16920,
+  "number_of_games": 5,
+  "live": {
+    "supported": true,
+    "url": "wss://live.pandascore.co/matches/1199347",
+    "opens_at": "2025-07-10T23:46:51.000000Z"
+  },
+  "league_id": 300,
+  "draw": false,
+  "slug": "anyone-s-legend-vs-bilibili-gaming-2025-07-11",
+  "serie_id": 9418,
+  "videogame": {
+    "id": 1,
+    "name": "LoL",
+    "slug": "league-of-legends"
+  },
+  "begin_at": "2025-07-11T00:01:51Z",
+  "modified_at": "2025-07-11T02:46:22Z",
+  "videogame_version": {
+    "name": "15.13.1",
+    "current": true
+  },
+  "scheduled_at": "2025-07-11T00:00:00Z",
+  "status": "finished",
+  "detailed_stats": true,
+  "tournament": {
+    "id": 16920,
+    "name": "Playoffs",
+    "type": "offline",
+    "country": "CA",
+    "begin_at": "2025-07-02T00:00:00Z",
+    "detailed_stats": true,
+    "end_at": "2025-07-13T04:16:00Z",
+    "winner_id": 2882,
+    "winner_type": "Team",
+    "slug": "league-of-legends-mid-invitational-2025-playoffs",
+    "modified_at": "2025-07-13T08:55:06Z",
+    "serie_id": 9418,
+    "league_id": 300,
+    "prizepool": "2000000 United States Dollar",
+    "tier": "s",
+    "has_bracket": true,
+    "region": "NA",
+    "live_supported": true
+  },
+  "serie": {
+    "id": 9418,
+    "name": "",
+    "year": 2025,
+    "begin_at": "2025-06-27T19:00:00Z",
+    "end_at": "2025-07-13T04:16:00Z",
+    "winner_id": null,
+    "winner_type": "Team",
+    "slug": "league-of-legends-mid-invitational-2025",
+    "modified_at": "2025-07-13T08:55:06Z",
+    "league_id": 300,
+    "season": null,
+    "full_name": "2025"
+  },
+  "id": 1199347,
+  "name": "Lower bracket semifinal: BLG vs AL",
+  "match_type": "best_of",
+  "forfeit": false,
+  "original_scheduled_at": "2025-07-11T00:00:00Z"
+}
