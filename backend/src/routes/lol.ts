@@ -641,7 +641,7 @@ export async function lolRoutes(app: FastifyInstance) {
             [],
             (err, rows) => {
               if (err) return reject(err)
-              resolve(rows)
+              resolve(rows as { id: number; name: string }[])
             }
           )
         }
