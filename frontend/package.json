@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview",
+    "preview": "vite preview --host --port $PORT",
     "dev:server": "nodemon --exec tsx src/index.ts",
     "start:server": "node dist/index.js",
     "build:server": "tsc"
