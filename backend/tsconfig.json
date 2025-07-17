@@ -7,8 +7,10 @@
     "resolveJsonModule": true,
     "strict": false,
     "skipLibCheck": true,
+    "baseUrl": "./",
+    "types": ["node"],
     "outDir": "dist",
-    "baseUrl": "./"
+    "rootDir": "src" // ← AJOUT ESSENTIEL
   },
   "include": ["src"],
   "exclude": ["node_modules"]
