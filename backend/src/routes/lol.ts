@@ -89,11 +89,11 @@ export async function lolRoutes(app: FastifyInstance) {
     const allLeagueSlugs: string[] = await new Promise((resolve, reject) => {
       db.all(
         `
-      SELECT slug FROM League
-      WHERE game_id = (SELECT id FROM Game WHERE slug = 'league-of-legends')
+    SELECT slug FROM League
+    WHERE game_id = (SELECT id FROM Game WHERE slug = 'league-of-legends')
     `,
         [],
-        (err, rows) => {
+        (err, rows: { slug: string }[]) => {
           if (err) return reject(err)
           resolve(rows.map((r) => r.slug))
         }
