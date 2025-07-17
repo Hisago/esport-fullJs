@@ -50,6 +50,8 @@ export const useTeamRanking = () =>
   })
 
 export const useSegments = () => {
+  console.log('🌐 API_BASE:', API_BASE)
+
   console.log('📡 useSegments lancé')
   return useQuery<Segment[]>({
     queryKey: ['lol-segments'],
