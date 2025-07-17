@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify"
-import { getDb } from "../db"
+import { getDb } from "../db.js"
 
 type MatchRow = {
   match_id: number
