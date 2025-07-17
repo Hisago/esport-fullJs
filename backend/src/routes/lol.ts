@@ -21,9 +21,13 @@ type TeamRow = {
 export async function lolRoutes(app: FastifyInstance) {
   // 🔹 /api/lol/leagues
   app.get("/api/lol/leagues", async (req, reply) => {
-    const db = getDb()
-
     try {
+      const db = getDb()
+      if (!db) {
+        console.error("❌ db is null or undefined")
+        return reply.status(500).send({ error: "Database not connected" })
+      }
+
       const rows = await new Promise<any[]>((resolve, reject) => {
         db.all(
           `
