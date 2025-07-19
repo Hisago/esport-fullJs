@@ -1,5 +1,6 @@
 import { FastifyInstance } from "fastify"
 import { getDb } from "../db.js"
+import { getSegmentRangesFromDb } from "src/lib/lol/segments.js"
 
 type MatchRow = {
   match_id: number
@@ -525,6 +526,7 @@ export async function lolRoutes(app: FastifyInstance) {
         /league-of-legends-lta/i,
         /league-of-legends-lpl/i,
         /league-of-legends-lck/i,
+        /league-of-legends-lcp/i,
       ]
 
       const getSegmentId = (date: string, league_slug: string): string => {
@@ -596,26 +598,11 @@ export async function lolRoutes(app: FastifyInstance) {
       league?: string
     }
 
-    const segmentRanges: Record<string, { start: string; end: string }> = {
-      "segment-1": { start: "2000-01-01", end: "2025-03-15T00:00:00Z" },
-      "first-stand": {
-        start: "2025-03-15T00:00:00Z",
-        end: "2025-04-01T00:00:00Z",
-      },
-      "segment-2": {
-        start: "2025-04-01T00:00:00Z",
-        end: "2025-05-10T00:00:00Z",
-      },
-      msi: { start: "2025-05-01T00:00:00Z", end: "2025-05-31T00:00:00Z" },
-      "segment-3": {
-        start: "2025-05-30T00:00:00Z",
-        end: "2025-08-01T00:00:00Z",
-      },
-      worlds: { start: "2025-08-01T00:00:00Z", end: "2100-01-01T00:00:00Z" },
-      ewc: { start: "2025-06-15T00:00:00Z", end: "2025-07-15T00:00:00Z" },
-    }
-
+    const segmentRanges = await getSegmentRangesFromDb(segment)
     const range = segmentRanges[segment ?? "segment-1"]
+
+    if (!range) return reply.send([])
+
     const rangeStartDate = new Date(range.start)
     const rangeEndDate = new Date(range.end)
     const isSpecialSegment = ["msi", "first-stand", "worlds", "ewc"].includes(
@@ -645,7 +632,7 @@ export async function lolRoutes(app: FastifyInstance) {
             [],
             (err, rows) => {
               if (err) return reject(err)
-              resolve(rows as { id: number; name: string }[])
+              resolve(rows)
             }
           )
         }
@@ -656,13 +643,11 @@ export async function lolRoutes(app: FastifyInstance) {
           l.name.toLowerCase().replace(/[-\s]/g, "") ===
           league.toLowerCase().replace(/[-\s]/g, "")
       )
-
       if (!leagueMatch) return reply.send([])
 
       filteredTournaments = tournaments.filter((t) => {
         const begin = new Date(t.begin_at)
         const end = new Date(t.end_at)
-
         const matchesDate = isSpecialSegment
           ? true
           : begin <= rangeEndDate && end >= rangeStartDate
@@ -701,15 +686,21 @@ export async function lolRoutes(app: FastifyInstance) {
     const result = []
 
     for (const t of filteredTournaments) {
-      const type = /playoff/i.test(t.slug)
+      const slug = t.slug
+
+      const type = slug.includes("placements")
+        ? /last-chance/i.test(slug)
+          ? "promotion"
+          : "placements"
+        : /playoff/i.test(slug)
         ? "playoffs"
-        : /play-?in/i.test(t.slug)
+        : /play-?in/i.test(slug)
         ? "play-in"
-        : /group/i.test(t.slug)
+        : /group/i.test(slug)
         ? "group"
-        : /positioning/i.test(t.slug)
+        : /positioning/i.test(slug)
         ? "positioning"
-        : /regular|season/i.test(t.slug)
+        : /regular|season/i.test(slug)
         ? "regular"
         : "other"
 
@@ -723,11 +714,9 @@ export async function lolRoutes(app: FastifyInstance) {
           }
         )
       })
-
       if (!tournamentRow) continue
 
       const tournamentId = tournamentRow.id
-
       const matches = await new Promise<any[]>((resolve, reject) => {
         db.all(
           `SELECT 
@@ -855,5 +844,109 @@ export async function lolRoutes(app: FastifyInstance) {
       console.error("❌ Erreur standings:", err)
       reply.status(500).send({ error: "Erreur SQL" })
     }
+  })
+
+  app.get("/api/lol/matches-by-league", async (req, reply) => {
+    const db = getDb()
+    const { league } = req.query as { league?: string }
+
+    if (!league)
+      return reply.code(400).send({ error: "Missing league parameter" })
+
+    const leagues = await new Promise<any[]>((resolve, reject) => {
+      db.all(
+        `SELECT id, name FROM League WHERE game_id = (SELECT id FROM Game WHERE slug = 'league-of-legends')`,
+        [],
+        (err, rows) => {
+          if (err) return reject(err)
+          resolve(rows)
+        }
+      )
+    })
+
+    const leagueMatch = leagues.find(
+      (l) =>
+        l.name.toLowerCase().replace(/[-\s]/g, "") ===
+        league.toLowerCase().replace(/[-\s]/g, "")
+    )
+
+    if (!leagueMatch) return reply.send([])
+
+    const tournaments = await new Promise<any[]>((resolve, reject) => {
+      db.all(
+        `SELECT id, slug, begin_at, end_at FROM Tournament
+       WHERE league_id = ? AND begin_at IS NOT NULL AND end_at IS NOT NULL`,
+        [leagueMatch.id],
+        (err, rows) => {
+          if (err) return reject(err)
+          resolve(rows)
+        }
+      )
+    })
+
+    const result = []
+
+    for (const t of tournaments) {
+      const type = t.slug.includes("placements")
+        ? /last-chance/i.test(t.slug)
+          ? "promotion"
+          : "placements"
+        : /playoff/i.test(t.slug)
+        ? "playoffs"
+        : /play-?in/i.test(t.slug)
+        ? "play-in"
+        : /group/i.test(t.slug)
+        ? "group"
+        : /positioning/i.test(t.slug)
+        ? "positioning"
+        : /regular|season/i.test(t.slug)
+        ? "regular"
+        : "other"
+
+      const tournamentId = t.id
+
+      const matches = await new Promise<any[]>((resolve, reject) => {
+        db.all(
+          `SELECT 
+          m.id AS match_id,
+          m.date,
+          l.name AS league_name,
+          l.slug AS league_slug,
+          t1.name AS team1_name,
+          t1.logo_url AS team1_logo,
+          t2.name AS team2_name,
+          t2.logo_url AS team2_logo,
+          m.score_team1,
+          m.score_team2,
+          m.status,
+          m.bracket
+        FROM Match m
+        JOIN League l ON m.league_id = l.id
+        JOIN Team t1 ON m.team1_id = t1.id
+        JOIN Team t2 ON m.team2_id = t2.id
+        WHERE m.tournament_id = ?
+        ORDER BY m.date ASC`,
+          [tournamentId],
+          (err, rows) => {
+            if (err) return reject(err)
+            resolve(rows)
+          }
+        )
+      })
+
+      const upper = matches.filter((m) => m.bracket === "upper")
+      const lower = matches.filter((m) => m.bracket === "lower")
+
+      result.push({
+        id: tournamentId,
+        slug: t.slug,
+        type,
+        matches,
+        upper,
+        lower,
+      })
+    }
+
+    reply.send(result)
   })
 }
