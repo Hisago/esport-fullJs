@@ -1,4 +1,4 @@
-import { getDb } from "../../db"
+import { getDb } from "../../db.js"
 
 export async function getSegmentRangesFromDb(segment?: string) {
   const db = getDb()
