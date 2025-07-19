@@ -1,6 +1,6 @@
 import { FastifyInstance } from "fastify"
 import { getDb } from "../db.js"
-import { getSegmentRangesFromDb } from "src/lib/lol/segments.js"
+import { getSegmentRangesFromDb } from "../lib/lol/segments.js"
 
 type MatchRow = {
   match_id: number
