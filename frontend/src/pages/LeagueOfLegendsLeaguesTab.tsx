@@ -18,7 +18,7 @@ const LeagueOfLegendsLeaguesTab = () => {
 
   const nonSegmentLeagues = useMemo(() => {
     if (!allLeagues) return []
-    return allLeagues.filter((league) => !segmentLeagueNames.has(league.name.toLowerCase()))
+    return allLeagues.filter((league: League) => !segmentLeagueNames.has(league.name.toLowerCase()))
   }, [allLeagues, segmentLeagueNames])
 
   if (isLoading) return <p className="p-6">Chargement des ligues...</p>
