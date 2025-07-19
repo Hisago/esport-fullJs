@@ -3,6 +3,7 @@ import { Match } from '@/types/lol'
 interface Props {
   upper?: Match[]
   lower?: Match[]
+  matches?: Match[] // ✅ ajouté pour les tournois de type "play-in"
 }
 
 const groupRounds = (matches: Match[], title: string) => {
@@ -19,17 +20,19 @@ const groupRounds = (matches: Match[], title: string) => {
   return rounds
 }
 
-const BracketBlock = ({ upper = [], lower = [] }: Props) => {
-  const upperRounds = groupRounds(upper, 'Bracket Supérieur')
+const BracketBlock = ({ upper = [], lower = [], matches = [] }: Props) => {
+  // ✅ si pas d'upper explicite, on utilise matches (ex: play-in)
+  const base = upper.length > 0 ? upper : matches
+  const upperRounds = groupRounds(base, upper.length > 0 ? 'Bracket Supérieur' : 'Play-In')
   const lowerRounds = groupRounds(lower, 'Bracket Inférieur')
 
   // 🏆 On détecte la finale comme dernier match du upper bracket
-  const finaleMatch = upper.reduce<Match | undefined>((latest, match) => {
+  const finaleMatch = base.reduce<Match | undefined>((latest, match) => {
     if (!latest) return match
     return new Date(match.date) > new Date(latest.date) ? match : latest
   }, undefined)
 
-  if (finaleMatch) {
+  if (finaleMatch && upper.length > 0) {
     upperRounds.push({
       title: '🏆 Finale',
       matches: [finaleMatch]

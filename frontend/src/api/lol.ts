@@ -5,12 +5,10 @@ const API_BASE = import.meta.env.VITE_API_BASE || ''
 
 const fetchJson = async (input: RequestInfo, options?: RequestInit) => {
   const res = await fetch(`${API_BASE}${input}`, options)
-  console.log(`📡 ${input} → status:`, res.status)
 
   const text = await res.text()
   try {
     const json = JSON.parse(text)
-    console.log('✅ Parsed JSON:', json)
     return json
   } catch (err) {
     console.error('❌ Failed to parse JSON:', err)
@@ -50,9 +48,6 @@ export const useTeamRanking = () =>
   })
 
 export const useSegments = () => {
-  console.log('🌐 API_BASE:', API_BASE)
-
-  console.log('📡 useSegments lancé')
   return useQuery<Segment[]>({
     queryKey: ['lol-segments'],
     queryFn: () => fetchJson('/api/lol/segments')
@@ -81,4 +76,14 @@ export const useStandings = (tournamentId?: number) =>
       return fetchJson(`/api/lol/standings?tournamentId=${tournamentId}`)
     },
     enabled: !!tournamentId
+  })
+
+export const useMatchesByLeague = (leagueName?: string) =>
+  useQuery<TournamentMatchBlock[]>({
+    queryKey: ['lol', 'matches-by-league', leagueName],
+    queryFn: () => {
+      if (!leagueName) return []
+      return fetchJson(`/api/lol/matches-by-league?league=${encodeURIComponent(leagueName)}`)
+    },
+    enabled: !!leagueName
   })

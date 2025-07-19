@@ -12,21 +12,49 @@ interface Props {
 }
 
 const phaseLabels: Record<string, string> = {
-  regular: 'Saison régulière',
+  placements: 'Placements',
+  promotion: 'Promotion',
   group: 'Groupes',
   positioning: 'Positionnement',
+  regular: 'Saison régulière',
   'play-in': 'Play-In',
   playoffs: 'Playoffs',
   other: 'Autres'
 }
 
 function formatTournamentName(slug: string): string {
-  return slug
+  const groupMatch = slug.match(/group-([a-z0-9-]+)/i)
+  const groupSuffix = groupMatch ? ` — Groupe ${capitalize(groupMatch[1])}` : ''
+
+  const baseName = slug
     .replace(/^league-of-legends-/, '')
-    .replace(/-(playoffs|play-?in|group[a-z0-9-]*|positioning|regular|season|last-chance-qualifier)$/i, '')
+    .replace(/-(playoffs|play-?in|group[a-z0-9-]*|positioning|regular|season|last-chance-qualifier|placements)$/i, '')
     .replace(/-/g, ' ')
     .replace(/\b\w/g, (l) => l.toUpperCase())
     .trim()
+
+  return baseName + groupSuffix
+}
+
+function capitalize(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+function groupBy<T>(arr: T[], fn: (item: T) => string): Record<string, T[]> {
+  return arr.reduce(
+    (acc, item) => {
+      const key = fn(item)
+      acc[key] = acc[key] ?? []
+      acc[key].push(item)
+      return acc
+    },
+    {} as Record<string, T[]>
+  )
+}
+
+function getGroupKey(slug: string): string {
+  const match = slug.match(/^(.*)-group-[a-z0-9-]+$/i)
+  return match?.[1] || slug
 }
 
 const getMatchCount = (block: any) =>
@@ -35,21 +63,12 @@ const getMatchCount = (block: any) =>
 const LeagueOfLegendsMatches = ({ selectedLeague, selectedSegment }: Props) => {
   const { data: tournaments, isLoading, isError } = useMatchesByTournament(selectedSegment, selectedLeague)
 
-  const getPhaseLabel = (slug: string): string => {
-    if (/play[\s-]?in/i.test(slug)) return 'play-in'
-    if (/group[\s-]?stage|group[\s-]?[a-z0-9]/i.test(slug)) return 'group'
-    if (/positioning/i.test(slug)) return 'positioning'
-    if (/playoff/i.test(slug)) return 'playoffs'
-    if (/regular|season/i.test(slug)) return 'regular'
-    return 'other'
-  }
-
-  const phaseOrder = ['regular', 'group', 'positioning', 'play-in', 'playoffs', 'other']
+  const phaseOrder = ['placements', 'promotion', 'group', 'positioning', 'regular', 'play-in', 'playoffs', 'other']
 
   const allPhases = useMemo(() => {
     const phaseSet = new Set<string>()
     tournaments?.forEach((block) => {
-      const phase = getPhaseLabel(block.slug)
+      const phase = block.type
       if (getMatchCount(block) > 0) {
         phaseSet.add(phase)
       }
@@ -66,8 +85,10 @@ const LeagueOfLegendsMatches = ({ selectedLeague, selectedSegment }: Props) => {
   }, [allPhases, selectedPhase])
 
   const filtered = useMemo(() => {
-    return tournaments?.filter((block) => getPhaseLabel(block.slug) === selectedPhase && getMatchCount(block) > 0) ?? []
+    return tournaments?.filter((block) => block.type === selectedPhase && getMatchCount(block) > 0) ?? []
   }, [tournaments, selectedPhase])
+
+  const grouped = groupBy(filtered, (t) => getGroupKey(t.slug))
 
   if (isLoading) return <p className="p-6">Chargement des matchs...</p>
   if (isError || !tournaments) return <p className="p-6 text-red-500">Erreur lors du chargement.</p>
@@ -80,43 +101,50 @@ const LeagueOfLegendsMatches = ({ selectedLeague, selectedSegment }: Props) => {
         </div>
       )}
 
-      {filtered.map((tournament) => {
-        const hasBracket = (tournament.upper?.length ?? 0) > 0 || (tournament.lower?.length ?? 0) > 0
-        const phase = getPhaseLabel(tournament.slug)
+      {Object.entries(grouped).map(([groupSlug, tournamentsInGroup]) => (
+        <div key={groupSlug}>
+          {tournamentsInGroup.map((tournament) => {
+            const phase = tournament.type
+            const hasBracket =
+              (tournament.upper?.length ?? 0) > 0 ||
+              (tournament.lower?.length ?? 0) > 0 ||
+              ((phase === 'play-in' || phase === 'playoffs') && (tournament.matches?.length ?? 0) > 0)
 
-        return (
-          <div key={tournament.slug}>
-            <h2 className="mb-2 text-2xl font-bold">
-              🏷️ {phaseLabels[phase] ?? phase} — {formatTournamentName(tournament.slug)}
-            </h2>
+            return (
+              <div key={tournament.slug} className="mb-8">
+                <h2 className="mb-2 text-2xl font-bold">
+                  🏷️ {phaseLabels[phase] ?? phase} — {formatTournamentName(tournament.slug)}
+                </h2>
 
-            {!hasBracket ? (
-              <div className="flex flex-col gap-6 lg:flex-row">
-                <div className="flex-1 space-y-2">
-                  {(tournament.matches ?? []).map((match, index) => (
-                    <motion.div
-                      key={match.match_id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05, duration: 0.3 }}
-                    >
-                      <MatchCard match={match} />
-                    </motion.div>
-                  ))}
-                </div>
+                {hasBracket ? (
+                  <BracketBlock upper={tournament.upper} lower={tournament.lower} matches={tournament.matches} />
+                ) : (
+                  <div className="flex flex-col gap-6 lg:flex-row">
+                    <div className="flex-1 space-y-2">
+                      {(tournament.matches ?? []).map((match, index) => (
+                        <motion.div
+                          key={match.match_id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.05, duration: 0.3 }}
+                        >
+                          <MatchCard match={match} />
+                        </motion.div>
+                      ))}
+                    </div>
 
-                {(phase === 'regular' || phase === 'group') && (
-                  <div className="w-full shrink-0 lg:w-80">
-                    <TournamentStandingsView tournamentId={tournament.id} />
+                    {['regular', 'group', 'placements'].includes(phase) && (
+                      <div className="w-full shrink-0 lg:w-80">
+                        <TournamentStandingsView tournamentId={tournament.id} />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            ) : (
-              <BracketBlock upper={tournament.upper} lower={tournament.lower} />
-            )}
-          </div>
-        )
-      })}
+            )
+          })}
+        </div>
+      ))}
 
       {filtered.length === 0 && <p className="p-6 italic text-zinc-400">Aucun tournoi trouvé pour cette phase.</p>}
     </div>
@@ -124,7 +152,6 @@ const LeagueOfLegendsMatches = ({ selectedLeague, selectedSegment }: Props) => {
 }
 
 const TournamentStandingsView = ({ tournamentId }: { tournamentId: number }) => {
-  console.log('🔍 tournamentId:', tournamentId)
   const { data, isLoading } = useStandings(tournamentId)
   if (isLoading || !data || data.length === 0) return null
   return <TournamentStandings standings={data} />

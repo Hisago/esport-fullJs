@@ -39,7 +39,6 @@ const LeagueOfLegendsPage = () => {
   const visibleLeagues = shouldShowLeagues ? segment.leagues : []
 
   // 🔍 Logs de debug
-  console.log('📦 Segment sélectionné :', selectedSegment)
   console.log(
     '📋 Ligues du segment :',
     segment?.leagues.map((l) => l.slug)
