@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { useMatchesByTournament, useStandings } from '@/api/lol'
+import { useMatchesByTournament, useMatchesByLeague, useStandings } from '@/api/lol'
+import { TournamentMatchBlock } from '@/types/lol'
 import MatchCard from '@/Components/Lol/MatchCard'
 import MatchTypeToggle from '@/Components/Lol/MatchTypeToggle'
 import BracketBlock from '@/Components/Lol/BracketBlock'
@@ -9,17 +10,33 @@ import TournamentStandings from '@/Components/Lol/TournamentStandings'
 interface Props {
   selectedLeague?: string
   selectedSegment?: string
+  customTournaments?: TournamentMatchBlock[]
 }
 
 const phaseLabels: Record<string, string> = {
-  placements: 'Placements',
-  promotion: 'Promotion',
+  regular: 'Saison régulière',
   group: 'Groupes',
   positioning: 'Positionnement',
-  regular: 'Saison régulière',
+  placements: 'Placements',
+  promotion: 'Promotion',
   'play-in': 'Play-In',
   playoffs: 'Playoffs',
+  'last-chance': 'Last Chance',
+  swiss: 'Swiss Stage',
   other: 'Autres'
+}
+
+function inferPhaseFromSlug(slug: string): string {
+  if (slug.includes('last-chance')) return 'last-chance'
+  if (slug.includes('swiss')) return 'swiss'
+  if (slug.includes('playoffs')) return 'playoffs'
+  if (slug.includes('play-in')) return 'play-in'
+  if (slug.includes('group')) return 'group'
+  if (slug.includes('regular')) return 'regular'
+  if (slug.includes('positioning')) return 'positioning'
+  if (slug.includes('promotion')) return 'promotion'
+  if (slug.includes('placements')) return 'placements'
+  return 'other'
 }
 
 function formatTournamentName(slug: string): string {
@@ -57,24 +74,45 @@ function getGroupKey(slug: string): string {
   return match?.[1] || slug
 }
 
-const getMatchCount = (block: any) =>
+const getMatchCount = (block: TournamentMatchBlock) =>
   (block.matches?.length ?? 0) + (block.upper?.length ?? 0) + (block.lower?.length ?? 0)
 
-const LeagueOfLegendsMatches = ({ selectedLeague, selectedSegment }: Props) => {
-  const { data: tournaments, isLoading, isError } = useMatchesByTournament(selectedSegment, selectedLeague)
+const LeagueOfLegendsMatches = ({ selectedLeague, selectedSegment, customTournaments }: Props) => {
+  const isUsingCustom = !!customTournaments
 
-  const phaseOrder = ['placements', 'promotion', 'group', 'positioning', 'regular', 'play-in', 'playoffs', 'other']
+  const {
+    data: tournamentData,
+    isLoading,
+    isError
+  } = !customTournaments
+    ? selectedSegment
+      ? useMatchesByTournament(selectedSegment, selectedLeague)
+      : useMatchesByLeague(selectedLeague)
+    : { data: customTournaments, isLoading: false, isError: false }
+
+  const phaseOrder = [
+    'regular',
+    'placements',
+    'promotion',
+    'group',
+    'positioning',
+    'swiss',
+    'last-chance',
+    'play-in',
+    'playoffs',
+    'other'
+  ]
 
   const allPhases = useMemo(() => {
     const phaseSet = new Set<string>()
-    tournaments?.forEach((block) => {
-      const phase = block.type
+    tournamentData?.forEach((block) => {
+      const phase = inferPhaseFromSlug(block.slug)
       if (getMatchCount(block) > 0) {
         phaseSet.add(phase)
       }
     })
     return phaseOrder.filter((phase) => phaseSet.has(phase))
-  }, [tournaments])
+  }, [tournamentData])
 
   const [selectedPhase, setSelectedPhase] = useState<string>('playoffs')
 
@@ -85,31 +123,32 @@ const LeagueOfLegendsMatches = ({ selectedLeague, selectedSegment }: Props) => {
   }, [allPhases, selectedPhase])
 
   const filtered = useMemo(() => {
-    return tournaments?.filter((block) => block.type === selectedPhase && getMatchCount(block) > 0) ?? []
-  }, [tournaments, selectedPhase])
+    return (
+      tournamentData?.filter((block) => inferPhaseFromSlug(block.slug) === selectedPhase && getMatchCount(block) > 0) ??
+      []
+    )
+  }, [tournamentData, selectedPhase])
 
   const grouped = groupBy(filtered, (t) => getGroupKey(t.slug))
 
   if (isLoading) return <p className="p-6">Chargement des matchs...</p>
-  if (isError || !tournaments) return <p className="p-6 text-red-500">Erreur lors du chargement.</p>
+  if (isError || !tournamentData) return <p className="p-6 text-red-500">Erreur lors du chargement.</p>
 
   return (
     <div className="space-y-10">
       {allPhases.length > 1 && (
-        <div className="flex justify-end">
-          <MatchTypeToggle selected={selectedPhase} options={allPhases} onChange={setSelectedPhase} />
-        </div>
+        <MatchTypeToggle selected={selectedPhase} options={allPhases} onChange={setSelectedPhase} />
       )}
 
       {Object.entries(grouped).map(([groupSlug, tournamentsInGroup]) => (
         <div key={groupSlug}>
           {tournamentsInGroup.map((tournament) => {
-            const phase = tournament.type
+            const phase = inferPhaseFromSlug(tournament.slug)
             const hasBracket =
-              (tournament.upper?.length ?? 0) > 0 ||
-              (tournament.lower?.length ?? 0) > 0 ||
-              ((phase === 'play-in' || phase === 'playoffs') && (tournament.matches?.length ?? 0) > 0)
-
+              ['playoffs', 'play-in', 'promotion'].includes(phase) &&
+              ((tournament.upper?.length ?? 0) > 0 ||
+                (tournament.lower?.length ?? 0) > 0 ||
+                (tournament.matches?.length ?? 0) > 0)
             return (
               <div key={tournament.slug} className="mb-8">
                 <h2 className="mb-2 text-2xl font-bold">
@@ -133,7 +172,7 @@ const LeagueOfLegendsMatches = ({ selectedLeague, selectedSegment }: Props) => {
                       ))}
                     </div>
 
-                    {['regular', 'group', 'placements'].includes(phase) && (
+                    {['regular', 'group', 'placements', 'swiss', 'last-chance'].includes(phase) && (
                       <div className="w-full shrink-0 lg:w-80">
                         <TournamentStandingsView tournamentId={tournament.id} />
                       </div>

@@ -887,19 +887,23 @@ export async function lolRoutes(app: FastifyInstance) {
     const result = []
 
     for (const t of tournaments) {
-      const type = t.slug.includes("placements")
-        ? /last-chance/i.test(t.slug)
+      const slug = t.slug
+
+      const type = slug.includes("placements")
+        ? /last-chance/i.test(slug)
           ? "promotion"
           : "placements"
-        : /playoff/i.test(t.slug)
+        : /playoff/i.test(slug)
         ? "playoffs"
-        : /play-?in/i.test(t.slug)
+        : /play-?in/i.test(slug)
         ? "play-in"
-        : /group/i.test(t.slug)
+        : /swiss/i.test(slug)
+        ? "swiss"
+        : /(group|groupe)/i.test(slug)
         ? "group"
-        : /positioning/i.test(t.slug)
+        : /positioning/i.test(slug)
         ? "positioning"
-        : /regular|season/i.test(t.slug)
+        : /regular|season/i.test(slug)
         ? "regular"
         : "other"
 

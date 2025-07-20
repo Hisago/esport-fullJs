@@ -1,5 +1,5 @@
-import clsx from "clsx"
-import { League } from "@/types/lol"
+import clsx from 'clsx'
+import { League } from '@/types/lol'
 
 type Props = {
   league: League
@@ -12,20 +12,14 @@ export default function LeagueListButton({ league, isActive, onClick }: Props) {
     <button
       onClick={onClick}
       className={clsx(
-        "flex items-center gap-2 px-4 py-2 rounded-full border text-sm whitespace-nowrap transition",
+        'flex items-center gap-2 whitespace-nowrap rounded-2xl border px-5 py-2.5 text-sm font-semibold transition',
         isActive
-          ? "bg-white border-gray-300 shadow-sm"
-          : "bg-gray-200 border-transparent hover:bg-gray-200"
+          ? 'border-black bg-black text-white shadow'
+          : 'border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100'
       )}
     >
-      {league.logo_url && (
-        <img
-          src={league.logo_url}
-          alt={league.name}
-          className="w-5 h-5 object-contain"
-        />
-      )}
-      <span className="font-medium truncate">{league.name}</span>
+      {league.logo_url && <img src={league.logo_url} alt={league.name} className="h-5 w-5 object-contain" />}
+      <span className="truncate">{league.name}</span>
     </button>
   )
 }

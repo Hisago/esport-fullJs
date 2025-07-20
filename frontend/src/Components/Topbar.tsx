@@ -44,7 +44,7 @@ const Topbar = () => {
         )}
       </div>
 
-      {/* Onglet "Toutes les ligues" 
+      {/* Onglet "Toutes les ligues" */}
       <div>
         <span
           className={`cursor-pointer text-lg font-semibold ${viewMode === 'leagues' ? 'underline' : ''}`}
@@ -52,7 +52,7 @@ const Topbar = () => {
         >
           Autres ligues
         </span>
-      </div>*/}
+      </div>
     </div>
   )
 }
